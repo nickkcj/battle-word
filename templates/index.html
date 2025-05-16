@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multiplayer Wordle</title>
+    <link href="https://fonts.googleapis.com/css2?family=Clear+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Clear Sans', sans-serif;
+        }
+
+        body {
+            background-color: #121213;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .game-container {
+            max-width: 500px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #3a3a3c;
+            padding-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin: 0;
+            color: #ffffff;
+        }
+
+        .game-board {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-bottom: 30px;
+        }
+
+        .row {
+            display: flex;
+            gap: 5px;
+            justify-content: center;
+        }
+
+        .tile {
+            width: 62px;
+            height: 62px;
+            border: 2px solid #3a3a3c;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: bold;
+            text-transform: uppercase;
+            transition: all 0.2s;
+        }
+
+        .tile.filled {
+            border-color: #565758;
+        }
+
+        .tile.correct {
+            background-color: #538d4e;
+            border-color: #538d4e;
+        }
+
+        .tile.present {
+            background-color: #b59f3b;
+            border-color: #b59f3b;
+        }
+
+        .tile.absent {
+            background-color: #3a3a3c;
+            border-color: #3a3a3c;
+        }
+
+        .keyboard {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 30px;
+        }
+
+        .keyboard-row {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+        }
+
+        .key {
+            background-color: #818384;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            min-width: 43px;
+            height: 58px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 10px;
+        }
+
+        .key.wide {
+            min-width: 65px;
+        }
+
+        .key.correct {
+            background-color: #538d4e;
+        }
+
+        .key.present {
+            background-color: #b59f3b;
+        }
+
+        .key.absent {
+            background-color: #3a3a3c;
+        }
+
+        .join-screen {
+            text-align: center;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: 2px solid #3a3a3c;
+            background-color: #121213;
+            color: white;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+
+        .btn {
+            background-color: #538d4e;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.2s;
+        }
+
+        .btn:hover {
+            background-color: #4a7d45;
+        }
+
+        .player-list {
+            background-color: #1a1a1b;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+
+        .player-list h3 {
+            margin: 0 0 15px 0;
+            color: #ffffff;
+            font-size: 20px;
+        }
+
+        .player {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #3a3a3c;
+        }
+
+        .player:last-child {
+            border-bottom: none;
+        }
+
+        .player-name {
+            font-weight: bold;
+        }
+
+        .player-score {
+            color: #538d4e;
+            font-weight: bold;
+        }
+
+        .timer {
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            margin: 20px 0;
+            color: #ffffff;
+        }
+
+        .game-over {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #1a1a1b;
+            padding: 30px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .game-over h2 {
+            margin: 0 0 20px 0;
+            color: #ffffff;
+        }
+
+        .game-over .word {
+            font-size: 24px;
+            font-weight: bold;
+            color: #538d4e;
+            margin-bottom: 20px;
+        }
+
+        .game-over .btn {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div id="join-screen" class="join-screen">
+            <div class="header">
+                <h1>Multiplayer Wordle</h1>
+            </div>
+            <div class="input-group">
+                <input type="text" id="username" placeholder="Enter your username" maxlength="15">
+                <input type="text" id="room" placeholder="Enter room code" maxlength="10">
+            </div>
+            <button id="join-button" class="btn">Join Game</button>
+        </div>
+
+        <div id="game-screen" style="display: none;">
+            <div class="header">
+                <h1>Multiplayer Wordle</h1>
+                <div class="timer" id="timer">5:00</div>
+                <button id="start-game-btn" class="btn" style="margin: 20px auto; display: block; max-width: 200px;">Start Game</button>
+            </div>
+            
+            <div id="game-board" class="game-board"></div>
+            <div id="message-area" style="text-align:center;color:#ffb347;font-weight:bold;margin:10px 0;"></div>
+
+            <div class="keyboard">
+                <div class="keyboard-row">
+                    <button class="key" onclick="addLetter('Q')">Q</button>
+                    <button class="key" onclick="addLetter('W')">W</button>
+                    <button class="key" onclick="addLetter('E')">E</button>
+                    <button class="key" onclick="addLetter('R')">R</button>
+                    <button class="key" onclick="addLetter('T')">T</button>
+                    <button class="key" onclick="addLetter('Y')">Y</button>
+                    <button class="key" onclick="addLetter('U')">U</button>
+                    <button class="key" onclick="addLetter('I')">I</button>
+                    <button class="key" onclick="addLetter('O')">O</button>
+                    <button class="key" onclick="addLetter('P')">P</button>
+                </div>
+                <div class="keyboard-row">
+                    <button class="key" onclick="addLetter('A')">A</button>
+                    <button class="key" onclick="addLetter('S')">S</button>
+                    <button class="key" onclick="addLetter('D')">D</button>
+                    <button class="key" onclick="addLetter('F')">F</button>
+                    <button class="key" onclick="addLetter('G')">G</button>
+                    <button class="key" onclick="addLetter('H')">H</button>
+                    <button class="key" onclick="addLetter('J')">J</button>
+                    <button class="key" onclick="addLetter('K')">K</button>
+                    <button class="key" onclick="addLetter('L')">L</button>
+                </div>
+                <div class="keyboard-row">
+                    <button class="key wide" type="button" onclick="submitGuess()">Enter</button>
+                    <button class="key" onclick="addLetter('Z')">Z</button>
+                    <button class="key" onclick="addLetter('X')">X</button>
+                    <button class="key" onclick="addLetter('C')">C</button>
+                    <button class="key" onclick="addLetter('V')">V</button>
+                    <button class="key" onclick="addLetter('B')">B</button>
+                    <button class="key" onclick="addLetter('N')">N</button>
+                    <button class="key" onclick="addLetter('M')">M</button>
+                    <button class="key wide" onclick="deleteLetter()">⌫</button>
+                </div>
+            </div>
+
+            <div class="player-list" id="player-list">
+                <h3>Players</h3>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script>
+        window.onerror = function(message, source, lineno, colno, error) {
+            alert('JS Error: ' + message + ' at ' + lineno + ':' + colno);
+        };
+        const socket = io();
+        let currentRow = 0;
+        let currentTile = 0;
+        let gameStarted = false;
+        let timeLeft = 300; // 5 minutes in seconds
+        let timerInterval;
+        let currentWord = '';
+
+        // Join game
+        document.getElementById('join-button').addEventListener('click', () => {
+            const room = document.getElementById('room').value;
+            const username = document.getElementById('username').value;
+            
+            if (room && username) {
+                socket.emit('join', { room, username });
+                document.getElementById('join-screen').style.display = 'none';
+                document.getElementById('game-screen').style.display = 'block';
+                createBoard(5); // Create initial board
+            } else {
+                alert('Please enter both username and room code');
+            }
+        });
+
+        // Handle game state
+        socket.on('game_state', (data) => {
+            currentWord = data.current_word;
+            createBoard(data.word_length);
+            const startBtn = document.getElementById('start-game-btn');
+            // Remove previous event listeners by cloning
+            const newStartBtn = startBtn.cloneNode(true);
+            startBtn.parentNode.replaceChild(newStartBtn, startBtn);
+            newStartBtn.style.display = data.game_started ? 'none' : 'block';
+            newStartBtn.onclick = () => {
+                const room = document.getElementById('room').value;
+                socket.emit('start_game', { room });
+                newStartBtn.style.display = 'none';
+            };
+            if (data.game_started) {
+                gameStarted = true;
+                startTimer();
+            } else {
+                gameStarted = false;
+            }
+        });
+
+        // Handle game started
+        socket.on('game_started', (data) => {
+            gameStarted = true;
+            document.getElementById('start-game-btn').style.display = 'none';
+            startTimer();
+            document.getElementById('message-area').textContent = 'Game started!';
+        });
+
+        // Handle guess results
+        socket.on('guess_result', (data) => {
+            if (!gameStarted) return;
+            document.getElementById('message-area').textContent = '';
+            const result = data.result;
+            const row = document.querySelectorAll('.row')[currentRow];
+            const tiles = row.querySelectorAll('.tile');
+            
+            tiles.forEach((tile, index) => {
+                tile.textContent = data.guess[index];
+                tile.classList.add(result[index]);
+            });
+
+            if (data.success) {
+                // Reset for new word
+                currentRow = 0;
+                currentTile = 0;
+                currentWord = data.new_word;
+                // Clear the board
+                document.querySelectorAll('.tile').forEach(tile => {
+                    tile.textContent = '';
+                    tile.classList.remove('filled', 'correct', 'present', 'absent');
+                });
+                document.getElementById('message-area').textContent = 'Correct! New word!';
+            } else {
+                currentRow++;
+                currentTile = 0;
+            }
+        });
+
+        function addLetter(letter) {
+            if (!gameStarted) return;
+            if (currentTile < 5) {
+                const tile = document.querySelectorAll('.row')[currentRow].querySelectorAll('.tile')[currentTile];
+                tile.textContent = letter;
+                tile.classList.add('filled');
+                currentTile++;
+            }
+        }
+
+        function deleteLetter() {
+            if (!gameStarted) return;
+            if (currentTile > 0) {
+                currentTile--;
+                const tile = document.querySelectorAll('.row')[currentRow].querySelectorAll('.tile')[currentTile];
+                tile.textContent = '';
+                tile.classList.remove('filled');
+            }
+        }
+
+        function submitGuess() {
+            const messageArea = document.getElementById('message-area');
+            if (!gameStarted) {
+                messageArea.textContent = 'Game has not started yet!';
+                return;
+            }
+            const tiles = Array.from(document.querySelectorAll('.row')[currentRow].querySelectorAll('.tile'));
+            const guess = tiles.map(tile => tile.textContent).join('');
+            console.log('Tiles:', tiles.map(tile => tile.textContent));
+            console.log('Guess:', guess, 'Length:', guess.length);
+            if (guess.length === 5 && /^[A-Z]{5}$/.test(guess)) {
+                messageArea.textContent = 'Submitting guess: ' + guess;
+                socket.emit('guess', {
+                    room: document.getElementById('room').value,
+                    guess: guess
+                });
+            } else {
+                messageArea.textContent = 'Please enter a 5-letter word!';
+            }
+        }
+
+        window.submitGuess = submitGuess;
+
+        // Keyboard input handling
+        document.addEventListener('keydown', (e) => {
+            if (!gameStarted) return;
+
+            if (e.key === 'Enter') {
+                submitGuess();
+            } else if (e.key === 'Backspace') {
+                deleteLetter();
+            } else if (/^[a-zA-Z]$/.test(e.key)) {
+                addLetter(e.key.toUpperCase());
+            }
+        });
+
+        function createBoard(wordLength) {
+            const board = document.getElementById('game-board');
+            board.innerHTML = '';
+            
+            for (let i = 0; i < 6; i++) {
+                const row = document.createElement('div');
+                row.className = 'row';
+                
+                for (let j = 0; j < wordLength; j++) {
+                    const tile = document.createElement('div');
+                    tile.className = 'tile';
+                    row.appendChild(tile);
+                }
+                
+                board.appendChild(row);
+            }
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                document.getElementById('timer').textContent = 
+                    `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        function endGame() {
+            const gameOver = document.createElement('div');
+            gameOver.className = 'game-over';
+            gameOver.innerHTML = `
+                <h2>Time's Up!</h2>
+                <p>Game Over</p>
+                <button class="btn" onclick="location.reload()">Play Again</button>
+            `;
+            document.body.appendChild(gameOver);
+        }
+
+        // Handle score updates
+        socket.on('scores_update', (data) => {
+            updatePlayerList(data.players);
+        });
+
+        // Handle player updates
+        socket.on('players_update', (data) => {
+            updatePlayerList(data.players);
+        });
+
+        function updatePlayerList(players) {
+            const playerList = document.getElementById('player-list');
+            playerList.innerHTML = '<h3>Players</h3>';
+            
+            Object.entries(players).forEach(([id, player]) => {
+                const playerDiv = document.createElement('div');
+                playerDiv.className = 'player';
+                playerDiv.innerHTML = `
+                    <span class="player-name">${player.username}</span>
+                    <span class="player-score">${player.score} words</span>
+                `;
+                playerList.appendChild(playerDiv);
+            });
+        }
+    </script>
+</body>
+</html> 
