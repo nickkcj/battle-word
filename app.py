@@ -42,16 +42,28 @@ class Game:
         if len(guess) != 5:
             return False
 
-        result = []
         current_word = self.players[player_id]['current_word']
         
+        # Count letter occurrences in the target word
+        letter_counts = {}
+        for letter in current_word:
+            if letter in letter_counts:
+                letter_counts[letter] += 1
+            else:
+                letter_counts[letter] = 1
+        
+        # First pass: mark correct positions
+        result = ['absent'] * 5
         for i, letter in enumerate(guess):
             if letter == current_word[i]:
-                result.append('correct')  # Changed from 'green'
-            elif letter in current_word:
-                result.append('present')  # Changed from 'yellow'
-            else:
-                result.append('absent')   # Changed from 'gray'
+                result[i] = 'correct'
+                letter_counts[letter] = max(0, letter_counts.get(letter, 0) - 1)
+        
+        # Second pass: mark present letters (but only if we have remaining counts)
+        for i, letter in enumerate(guess):
+            if result[i] != 'correct' and letter in letter_counts and letter_counts[letter] > 0:
+                result[i] = 'present'
+                letter_counts[letter] -= 1
 
         self.players[player_id]['guesses'].append({
             'word': guess,

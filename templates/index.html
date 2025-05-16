@@ -322,6 +322,9 @@
         let timerInterval;
         let currentWord = '';
 
+        // Object to track keyboard letter statuses
+        const keyboardStatus = {};
+
         // Join game
         document.getElementById('join-button').addEventListener('click', () => {
             const room = document.getElementById('room').value;
@@ -367,19 +370,53 @@
             document.getElementById('message-area').textContent = 'Game started!';
         });
 
+        // Fix the updateKeyboard function to work with your keyboard HTML
+        function updateKeyboard(guess, result) {
+            for (let i = 0; i < guess.length; i++) {
+                const letter = guess[i];
+                const status = result[i];
+                
+                // Apply status priority (correct > present > absent)
+                if (!keyboardStatus[letter]) {
+                    keyboardStatus[letter] = status;
+                } else if (status === 'correct') {
+                    // Correct always overrides any previous state
+                    keyboardStatus[letter] = 'correct';
+                } else if (status === 'present' && keyboardStatus[letter] !== 'correct') {
+                    // Present overrides absent but not correct
+                    keyboardStatus[letter] = 'present';
+                }
+            }
+            
+            // Apply states to keyboard - using .key instead of .keyboard-key
+            document.querySelectorAll('.key').forEach(key => {
+                const keyLetter = key.textContent.trim().toUpperCase();
+                if (keyboardStatus[keyLetter]) {
+                    // Remove any previous status classes
+                    key.classList.remove('correct', 'present', 'absent');
+                    // Add current status
+                    key.classList.add(keyboardStatus[keyLetter]);
+                }
+            });
+        }
+
         // Handle guess results
         socket.on('guess_result', (data) => {
             if (!gameStarted) return;
             document.getElementById('message-area').textContent = '';
             const result = data.result;
+            const guess = data.guess.toUpperCase();
             const row = document.querySelectorAll('.row')[currentRow];
             const tiles = row.querySelectorAll('.tile');
             
             tiles.forEach((tile, index) => {
-                tile.textContent = data.guess[index];
+                tile.textContent = guess[index];
                 tile.classList.add(result[index]);
             });
-
+            
+            // Update keyboard with the guess result
+            updateKeyboard(guess, result);
+            
             if (data.success) {
                 // Reset for new word
                 currentRow = 0;
@@ -523,4 +560,4 @@
         }
     </script>
 </body>
-</html> 
+</html>
