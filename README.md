@@ -1,43 +1,43 @@
-# Multiplayer Wordle
+# 🎮 Wordle Multiplayer
 
-A real-time multiplayer version of the popular Wordle game where players compete to guess the same word within a time limit.
+Uma versão multiplayer **em tempo real** do clássico Wordle, onde os jogadores competem para adivinhar a mesma palavra dentro de um limite de tempo ⏱️
 
-## Features
+## ✨ Funcionalidades
 
-- Real-time multiplayer gameplay
-- 5-minute time limit per game
-- Point system based on how quickly you guess the word
-- Room-based gameplay
-- Live player list with scores
-- Color-coded feedback for guesses
+* Jogo multiplayer em tempo real 🕹️
+* Limite de tempo de **5 minutos** por partida
+* Sistema de pontos baseado na quantidade de acertos ⚡
+* Partidas organizadas por salas
+* Feedback com cores para cada tentativa 🟩🟨⬜
 
-## Setup
+## ⚙️ Como Configurar
 
-1. Install Python 3.7 or higher
-2. Install the required packages:
+1. Instale o **Python 3.7** ou superior
+2. Instale os pacotes necessários:
+
    ```
    pip install -r requirements.txt
    ```
-3. Run the server:
+3. Inicie o servidor:
+
    ```
    python app.py
    ```
-4. Open your browser and navigate to `http://localhost:5000`
+4. Abra o navegador e acesse: `http://localhost:5000`
 
-## How to Play
+## 🧠 Como Jogar
 
-1. Enter your username and a room code
-2. Share the room code with friends to play together
-3. You have 5 minutes to guess the 5-letter word
-4. Points are awarded based on how quickly you guess the word
-5. Green letters indicate correct position
-6. Yellow letters indicate correct letter, wrong position
-7. Gray letters indicate letter not in the word
+1. Digite seu nome de usuário e um código de sala
+2. Compartilhe o código com seus amigos para jogarem juntos
+3. Você terá **5 minutos** para adivinhar o máximo de palavras de 5 letras
+4. Os pontos são calculados com base na quantidade de acertos
+5. Letras verdes = letra e posição corretas 🟩
+6. Letras amarelas = letra certa na posição errada 🟨
+7. Letras cinzas = letra não está na palavra ⬜
 
-## Game Rules
+## 📏 Regras do Jogo
 
-- Each game lasts 5 minutes
-- Players can make unlimited guesses
-- Points are calculated based on time remaining
-- The first player to guess the word correctly wins
-- If no one guesses the word in time, the game ends 
+* Cada partida dura **5 minutos**
+* Tentativas ilimitadas
+* Se ninguém acertar a palavra no tempo, o jogo termina 🚫
+
