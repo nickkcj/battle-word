@@ -3,6 +3,10 @@ from flask_socketio import SocketIO, emit, join_room, leave_room
 import random
 import json
 import time
+import google.generativeai as genai
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
@@ -16,7 +20,7 @@ WORDS = ['APPLE', 'BEACH', 'CLOUD', 'DREAM', 'EARTH', 'FLAME', 'GRASS', 'HEART',
 
 class Game:
     def __init__(self):
-        self.word = random.choice(WORDS)
+        self.word = get_gemini_word()
         self.players = {}
         self.start_time = None
         self.game_duration = 300  # 5 minutes in seconds
@@ -27,7 +31,7 @@ class Game:
             'username': username,
             'guesses': [],
             'score': 0,
-            'current_word': random.choice(WORDS)  # Each player gets their own word
+            'current_word': get_gemini_word()  # Each player gets their own word
         }
 
     def start_game(self):
@@ -72,10 +76,28 @@ class Game:
 
         if guess == current_word:
             self.players[player_id]['score'] += 1
-            self.players[player_id]['current_word'] = random.choice(WORDS)
+            self.players[player_id]['current_word'] = get_gemini_word()
             return True
 
         return False
+
+def get_gemini_word():
+    GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
+    genai.configure(api_key=GOOGLE_API_KEY)
+    model = genai.GenerativeModel('gemini-2.0-flash')
+    prompt = (
+        "Give me a single, common English word with exactly 5 letters. "
+        "Just return the word, nothing else."
+    )
+    response = model.generate_content(prompt)
+    # Extract the word from the response
+    word = response.text.strip().upper()
+    # Validate the word (should be 5 letters, alphabetic)
+    if len(word) == 5 and word.isalpha():
+        return word
+    else:
+        # Fallback to a random word from your list if Gemini fails
+        return random.choice(WORDS)
 
 @app.route('/')
 def index():
