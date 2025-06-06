@@ -241,17 +241,107 @@
         .game-over .btn {
             margin-top: 20px;
         }
+
+        .language-select {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 10px 0;
+        }
+
+        .language-select label {
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+
+        .shake {
+            animation: shake 0.5s;
+        }
+
+        .notification-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            max-height: 100vh;
+            width: 300px;
+            overflow: visible; /* Changed to visible to allow floating outside container */
+            pointer-events: none;
+        }
+
+        .notification {
+            background-color: #538d4e;
+            color: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            animation: dramaticFloat 6s forwards; /* Longer duration for more suspense */
+            max-width: 300px;
+            pointer-events: auto;
+        }
+
+        @keyframes dramaticFloat {
+            0% { 
+                opacity: 0;
+                transform: translateY(100px);
+            }
+            10% { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+            20% { 
+                opacity: 1;
+                transform: translateY(-100px);
+            }
+            40% { 
+                opacity: 1;
+                transform: translateY(-300px);
+            }
+            60% { 
+                opacity: 1;
+                transform: translateY(-500px);
+            }
+            80% { 
+                opacity: 1;
+                transform: translateY(-700px);
+            }
+            95% {
+                opacity: 0.7;
+                transform: translateY(-900px);
+            }
+            100% { 
+                opacity: 0;
+                transform: translateY(-1000px);
+            }
+        }
     </style>
 </head>
 <body>
     <div class="game-container">
         <div id="join-screen" class="join-screen">
             <div class="header">
-                <h1>Multiplayer Wordle</h1>
+                <h1>Multiplayer Wordle</h1> 
             </div>
             <div class="input-group">
                 <input type="text" id="username" placeholder="Enter your username" maxlength="15">
                 <input type="text" id="room" placeholder="Enter room code" maxlength="10">
+                <div class="language-select">
+                    <label>
+                        <input type="radio" name="language" value="english" checked> English
+                    </label>
+                    <label>
+                        <input type="radio" name="language" value="portuguese"> Portuguese
+                    </label>
+                </div>
             </div>
             <button id="join-button" class="btn">Join Game</button>
         </div>
@@ -307,6 +397,8 @@
                 <h3>Players</h3>
             </div>
         </div>
+
+        <div class="notification-container" id="notification-container"></div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
@@ -329,9 +421,10 @@
         document.getElementById('join-button').addEventListener('click', () => {
             const room = document.getElementById('room').value;
             const username = document.getElementById('username').value;
+            const language = document.querySelector('input[name="language"]:checked').value;
             
             if (room && username) {
-                socket.emit('join', { room, username });
+                socket.emit('join', { room, username, language });
                 document.getElementById('join-screen').style.display = 'none';
                 document.getElementById('game-screen').style.display = 'block';
                 createBoard(5); // Create initial board
@@ -403,6 +496,7 @@
         // Handle guess results
         socket.on('guess_result', (data) => {
             if (!gameStarted) return;
+            
             document.getElementById('message-area').textContent = '';
             const result = data.result;
             const guess = data.guess.toUpperCase();
@@ -421,17 +515,71 @@
                 // Reset for new word
                 currentRow = 0;
                 currentTile = 0;
-                currentWord = data.new_word;
-                // Clear the board
-                document.querySelectorAll('.tile').forEach(tile => {
-                    tile.textContent = '';
-                    tile.classList.remove('filled', 'correct', 'present', 'absent');
-                });
                 document.getElementById('message-area').textContent = 'Correct! New word!';
+                
+                // Clear the board
+                for (let i = 0; i < 6; i++) {
+                    const row = document.querySelectorAll('.row')[i];
+                    const tiles = row.querySelectorAll('.tile');
+                    tiles.forEach(tile => {
+                        tile.textContent = '';
+                        tile.classList.remove('filled', 'correct', 'present', 'absent');
+                    });
+                }
+                
+                // Reset keyboard colors
+                Object.keys(keyboardStatus).forEach(key => delete keyboardStatus[key]);
+                document.querySelectorAll('.key').forEach(key => {
+                    key.classList.remove('correct', 'present', 'absent');
+                });
             } else {
                 currentRow++;
                 currentTile = 0;
+                
+                // Check if we've reached the end of the board
+                if (currentRow >= document.querySelectorAll('.row').length) {
+                    // Request a new word from the server
+                    socket.emit('next_word', {
+                        room: document.getElementById('room').value
+                    });
+                    
+                    // Clear the board to allow more guesses
+                    for (let i = 0; i < document.querySelectorAll('.row').length; i++) {
+                        const row = document.querySelectorAll('.row')[i];
+                        const tiles = row.querySelectorAll('.tile');
+                        tiles.forEach(tile => {
+                            tile.textContent = '';
+                            tile.classList.remove('filled', 'correct', 'present', 'absent');
+                        });
+                    }
+                    
+                    // Reset to the first row
+                    currentRow = 0;
+                    
+                    // Reset keyboard colors
+                    Object.keys(keyboardStatus).forEach(key => delete keyboardStatus[key]);
+                    document.querySelectorAll('.key').forEach(key => {
+                        key.classList.remove('correct', 'present', 'absent');
+                    });
+                    
+                    // Inform the user
+                    document.getElementById('message-area').textContent = 'New word!';
+                    setTimeout(() => {
+                        document.getElementById('message-area').textContent = '';
+                    }, 2000);
+                }
             }
+        });
+
+        // Handle guess error
+        socket.on('guess_error', (data) => {
+            document.getElementById('message-area').textContent = data.message;
+            // Optionally shake the current row to indicate an error
+            const row = document.querySelectorAll('.row')[currentRow];
+            row.classList.add('shake');
+            setTimeout(() => {
+                row.classList.remove('shake');
+            }, 500);
         });
 
         function addLetter(letter) {
@@ -558,6 +706,26 @@
                 playerList.appendChild(playerDiv);
             });
         }
+
+        // Add this function to create and show notifications
+        function showNotification(message) {
+            const container = document.getElementById('notification-container');
+            const notification = document.createElement('div');
+            notification.classList.add('notification');
+            notification.textContent = message;
+            container.appendChild(notification);
+            
+            // Remove notification after animation completes (6 seconds)
+            setTimeout(() => {
+                notification.remove();
+            }, 6000);
+        }
+        
+        // Add this event handler
+        socket.on('player_correct', (data) => {
+            const message = `${data.username} got a word right!`;
+            showNotification(message);
+        });
     </script>
 </body>
 </html>
