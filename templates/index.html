@@ -346,18 +346,13 @@
             transition: all 0.2s;
         }
 
-        .player:hover {
-            background-color: rgba(58, 58, 60, 0.3);
-        }
-
-        .player:last-child {
-            border-bottom: none;
-            margin-bottom: 0;
-        }
-
         .player-name {
             font-weight: bold;
             font-size: 16px;
+            max-width: 60%; /* Limit width to prevent overflow */
+            white-space: nowrap; /* Prevent wrapping to new line */
+            overflow: hidden; /* Hide overflow */
+            text-overflow: ellipsis; /* Add ellipsis for truncated text */
         }
 
         .player-score {
@@ -367,6 +362,8 @@
             padding: 5px 10px;
             border-radius: 12px;
             background-color: rgba(83, 141, 78, 0.15);
+            flex-shrink: 0; /* Prevent score from shrinking */
+            margin-left: 8px; /* Add some space between name and score */
         }
 
         #message-area {
