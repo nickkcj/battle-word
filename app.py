@@ -8,6 +8,7 @@ from five_letter_words import words
 from top1000_words import words_pt
 import google.generativeai as genai
 from dotenv import load_dotenv
+import unicodedata
 
 # Load environment variables
 load_dotenv()
@@ -31,18 +32,124 @@ PT_WORDS = ['AMIGO', 'BARCO', 'CHUVA', 'DENTE', 'FAROL', 'GRAMA', 'HOTEL',
 def ensure_word_lists_exist():
     # URLs for comprehensive word lists
     english_url = "https://raw.githubusercontent.com/charlesreid1/five-letter-words/master/sgb-words.txt"
+    portuguese_url = "https://www.ime.usp.br/~pf/dicios/br-utf8.txt"  # More reliable Portuguese dictionary
     
-    # File paths
-    english_path = "english_words.txt"
+    # Get absolute file paths
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    english_path = os.path.join(base_dir, "english_words.txt")
+    portuguese_path = os.path.join(base_dir, "portuguese_words.txt")
     
     # Download English words if needed
     if not os.path.exists(english_path) or os.path.getsize(english_path) < 10000:
         print("Downloading comprehensive English word list...")
-        response = requests.get(english_url)
-        if response.status_code == 200:
-            with open(english_path, "w", encoding="utf-8") as f:
-                f.write(response.text)
-            print(f"Downloaded {len(response.text.splitlines())} English words")
+        try:
+            response = requests.get(english_url)
+            if response.status_code == 200:
+                with open(english_path, "w", encoding="utf-8") as f:
+                    f.write(response.text)
+                print(f"Downloaded {len(response.text.splitlines())} English words")
+            else:
+                print(f"Failed to download English words: HTTP {response.status_code}")
+        except Exception as e:
+            print(f"Error downloading English words: {e}")
+    
+    # Download Portuguese words if needed
+    if not os.path.exists(portuguese_path) or os.path.getsize(portuguese_path) < 10000:
+        print("Downloading comprehensive Portuguese word list...")
+        try:
+            response = requests.get(portuguese_url)
+            if response.status_code == 200:
+                # Extract only 5-letter words
+                five_letter_words = []
+                for word in response.text.splitlines():
+                    word = word.strip().lower()
+                    # Keep only pure alphabetic 5-letter words
+                    if len(word) == 5 and all(c.isalpha() or c in 'áàãâéêíóôõúüç' for c in word):
+                        # Normalize to remove accents
+                        normalized_word = ''.join(c for c in unicodedata.normalize('NFD', word) 
+                                               if unicodedata.category(c) != 'Mn')
+                        five_letter_words.append(normalized_word.upper())
+                
+                # Write to file
+                with open(portuguese_path, "w", encoding="utf-8") as f:
+                    f.write('\n'.join(five_letter_words))
+                print(f"Downloaded and filtered {len(five_letter_words)} Portuguese words")
+                
+                # If no words found, use a backup list
+                if len(five_letter_words) < 100:
+                    print("Not enough Portuguese words found, using backup list")
+                    backup_words = generate_backup_portuguese_words()
+                    with open(portuguese_path, "w", encoding="utf-8") as f:
+                        f.write('\n'.join(backup_words))
+                    print(f"Added {len(backup_words)} Portuguese words from backup")
+            else:
+                print(f"Failed to download Portuguese words: HTTP {response.status_code}")
+                # Use backup immediately
+                backup_words = generate_backup_portuguese_words()
+                with open(portuguese_path, "w", encoding="utf-8") as f:
+                    f.write('\n'.join(backup_words))
+                print(f"Added {len(backup_words)} Portuguese words from backup")
+        except Exception as e:
+            print(f"Error downloading Portuguese words: {e}")
+            # Use backup on exception
+            backup_words = generate_backup_portuguese_words()
+            with open(portuguese_path, "w", encoding="utf-8") as f:
+                f.write('\n'.join(backup_words))
+            print(f"Added {len(backup_words)} Portuguese words from backup due to error")
+
+def generate_backup_portuguese_words():
+    """Generate a reliable list of Portuguese 5-letter words"""
+    return [word.upper() for word in [
+        'SAGAZ', 'AMIGO', 'TERMO', 'NOBRE', 'SENSO', 'AFETO', 'ETNIA', 'ANEXO', 'TEMPO',
+        'CASAL', 'DENGO', 'CAUSA', 'PODER', 'CORPO', 'COMUM', 'MENTE', 'SONHO', 'FESTA',
+        'FORTE', 'MUNDO', 'PORTA', 'PRAIA', 'TERRA', 'FELIZ', 'CLARO', 'TARDE', 'NUNCA',
+        'VERDE', 'AMIGO', 'BARCO', 'CHUVA', 'DENTE', 'FAROL', 'GRAMA', 'HOTEL', 'IDEIA',
+        'JANELA', 'LEITE', 'MANHA', 'NOITE', 'PRATO', 'QUEDA', 'ROUPA', 'SONHO', 'TEMPO',
+        'UNICO', 'VENTO', 'ZEBRA', 'BANDA', 'CONTA', 'DISCO', 'ESCOLA', 'FOLHA', 'GRUPO',
+        'HOMEM', 'IDADE', 'JOVEM', 'LINHA', 'MORTE', 'NIVEL', 'ORDEM', 'PAPEL', 'QUASE',
+        'REGRA', 'SAUDE', 'TRAÇO', 'UTERO', 'VALOR', 'XADREZ'
+    ] if len(word) == 5]
+
+# Debug function - add this to help troubleshoot
+def debug_word_lists():
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    english_path = os.path.join(base_dir, "english_words.txt")
+    portuguese_path = os.path.join(base_dir, "portuguese_words.txt")
+    
+    print(f"Looking for word lists in: {base_dir}")
+    print(f"English file exists: {os.path.exists(english_path)}")
+    print(f"Portuguese file exists: {os.path.exists(portuguese_path)}")
+    
+    if os.path.exists(portuguese_path):
+        with open(portuguese_path, "r", encoding="utf-8") as f:
+            words = f.readlines()
+        print(f"Portuguese file has {len(words)} words")
+        if words:
+            print(f"Sample Portuguese words: {words[:10]}")
+
+# Function to load Portuguese words needs to be defined before it's used 
+def load_portuguese_words_from_file():
+    """Load Portuguese words from the text file into a list."""
+    portuguese_words = []
+    
+    # Get absolute file path
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    portuguese_path = os.path.join(base_dir, "portuguese_words.txt")
+    
+    if os.path.exists(portuguese_path):
+        try:
+            with open(portuguese_path, "r", encoding="utf-8") as f:
+                for line in f:
+                    word = line.strip().upper()
+                    if len(word) == 5:
+                        portuguese_words.append(word)
+            print(f"Loaded {len(portuguese_words)} Portuguese words from file")
+        except Exception as e:
+            print(f"Error loading Portuguese words from file: {e}")
+    else:
+        print(f"Portuguese words file not found at {portuguese_path}")
+    
+    return portuguese_words
 
 # Load word lists efficiently
 def load_word_lists():
@@ -52,18 +159,22 @@ def load_word_lists():
     
     # Add words from five_letter_words and top1000_words modules
     en_words.update(words)
-    pt_words.update(words_pt)
+    pt_words.update(PORTUGUESE_WORD_LIST)
     
     # Extend with the downloaded word lists
     try:
         # English list
-        if os.path.exists("english_words.txt"):
-            with open("english_words.txt", "r", encoding="utf-8") as f:
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        english_path = os.path.join(base_dir, "english_words.txt")
+        portuguese_path = os.path.join(base_dir, "portuguese_words.txt")
+        
+        if os.path.exists(english_path):
+            with open(english_path, "r", encoding="utf-8") as f:
                 en_words.update(word.strip().upper() for word in f.readlines() if len(word.strip()) == 5)
         
         # Load additional Portuguese words if you have them
-        if os.path.exists("portuguese_words.txt"):
-            with open("portuguese_words.txt", "r", encoding="utf-8") as f:
+        if os.path.exists(portuguese_path):
+            with open(portuguese_path, "r", encoding="utf-8") as f:
                 pt_words.update(word.strip().upper() for word in f.readlines() if len(word.strip()) == 5)
                 
         print(f"Loaded {len(en_words)} English words and {len(pt_words)} Portuguese words")
@@ -72,9 +183,19 @@ def load_word_lists():
     
     return en_words, pt_words
 
-# Call functions to ensure we have the word lists
+# Now execute these in the correct order:
+
+# 1. First download/ensure the files exist
 ensure_word_lists_exist()
+
+# 2. Then load Portuguese words from file into global variable
+PORTUGUESE_WORD_LIST = load_portuguese_words_from_file()
+
+# 3. Only AFTER that, load the combined word lists
 EN_VALID_WORDS, PT_VALID_WORDS = load_word_lists()
+
+# Debug after everything is loaded
+debug_word_lists()
 
 def is_valid_word(word, language="english"):
     """Fast word validation using pre-loaded word sets with fallback"""
