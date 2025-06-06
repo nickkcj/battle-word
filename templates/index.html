@@ -38,7 +38,7 @@
         }
 
         .game-container {
-            max-width: 1000px; /* Increased to accommodate side-by-side layout */
+            max-width: 1000px;
             width: 100%;
             margin: 0 auto;
             padding: 20px;
@@ -60,14 +60,14 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            max-width: 550px; /* Ensure it doesn't expand too wide */
+            max-width: 550px;
         }
         
         .game-sidebar {
             width: 30%;
             min-width: 200px;
-            flex-shrink: 0; /* Prevent it from shrinking */
-            align-self: flex-start; /* Stick to the top */
+            flex-shrink: 0;
+            align-self: flex-start;
         }
 
         .header {
@@ -113,7 +113,7 @@
             gap: 6px;
             margin: 0 auto 30px;
             perspective: 600px;
-            max-width: 340px; /* Set explicit max-width */
+            max-width: 340px;
         }
 
         .row {
@@ -180,7 +180,7 @@
             padding: 15px 0;
             background-color: var(--surface);
             width: 100%;
-            max-width: 540px; /* Set a max-width to match the game board */
+            max-width: 540px;
         }
 
         .keyboard-row {
@@ -349,10 +349,10 @@
         .player-name {
             font-weight: bold;
             font-size: 16px;
-            max-width: 60%; /* Limit width to prevent overflow */
-            white-space: nowrap; /* Prevent wrapping to new line */
-            overflow: hidden; /* Hide overflow */
-            text-overflow: ellipsis; /* Add ellipsis for truncated text */
+            max-width: 60%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .player-score {
@@ -362,8 +362,8 @@
             padding: 5px 10px;
             border-radius: 12px;
             background-color: rgba(83, 141, 78, 0.15);
-            flex-shrink: 0; /* Prevent score from shrinking */
-            margin-left: 8px; /* Add some space between name and score */
+            flex-shrink: 0;
+            margin-left: 8px;
         }
 
         #message-area {
@@ -438,15 +438,15 @@
             margin-bottom: 10px;
             border-radius: 8px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-            animation: smoothFloat 6s cubic-bezier(0.25, 0.1, 0.25, 1) forwards; /* Added cubic-bezier for smoother motion */
+            animation: smoothFloat 6s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
             max-width: 250px;
             font-size: 14px;
             pointer-events: auto;
             font-weight: 500;
             text-align: center;
             border: 1px solid rgba(255,255,255,0.2);
-            will-change: transform, opacity; /* Hint for browser to optimize animation */
-            backface-visibility: hidden; /* Reduces flickering on some browsers */
+            will-change: transform, opacity;
+            backface-visibility: hidden;
         }
 
         @keyframes smoothFloat {
@@ -482,74 +482,201 @@
             100% { opacity: 0; transform: translateY(-1000px); }
         }
 
-        /* Update these styles */
-
-        /* Center the game board and keyboard */
-        .game-main {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            width: 65%;
-            align-items: center; /* Center children horizontally */
-        }
-
-        /* Make the keyboard full width of its container */
-        .keyboard {
-            margin-top: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            padding: 15px 0;
-            background-color: var(--surface);
-            width: 100%;
-            max-width: 540px; /* Set a max-width to match the game board */
-        }
-
-        /* Make the game container slightly wider */
-        .game-container {
-            max-width: 650px; /* Increased from 550px */
-            width: 100%;
-            margin: 0 auto;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-
-        /* Center game board */
-        .game-board {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            margin: 0 auto 30px;
-            perspective: 600px;
-            max-width: 340px; /* Set explicit max-width */
-        }
-
-        /* Ensure keyboard stays at bottom of game area */
-        .keyboard {
-            margin-top: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            padding: 15px 0;
-            background-color: var(--surface);
-        }
-        
-        /* Add responsive behavior for mobile devices */
+        /* Mobile Responsiveness - Enhanced */
         @media (max-width: 768px) {
-            .game-content {
-                flex-direction: column;
+            /* General container adjustments */
+            .game-container {
+                padding: 10px 5px;
+                max-width: 100%;
             }
             
-            .game-main, .game-sidebar {
+            /* Header adjustments */
+            .header {
+                padding: 10px 0 15px;
+                margin-bottom: 10px;
+            }
+            
+            .logo-container img {
+                height: 30px;
+            }
+            
+            .header h1 {
+                font-size: 20px;
+            }
+            
+            .timer {
+                font-size: 22px;
+                margin: 5px 0;
+            }
+            
+            /* Game content layout */
+            .game-content {
+                flex-direction: column-reverse;
+                gap: 10px;
+            }
+            
+            .game-main {
+                order: 2;
                 width: 100%;
                 max-width: 100%;
             }
             
+            .game-sidebar {
+                order: 1;
+                width: 100%;
+                max-width: 100%;
+                margin-bottom: 5px;
+            }
+            
+            /* Player list adjustments */
             .player-list {
-                margin-bottom: 20px;
-                max-height: 200px;
+                padding: 10px;
+                max-height: 120px;
+                overflow-y: auto;
+                margin-top: 0;
+            }
+            
+            .player-list h3 {
+                font-size: 18px;
+                margin-bottom: 8px;
+            }
+            
+            .player {
+                padding: 8px 10px;
+                margin-bottom: 3px;
+            }
+            
+            .player-name {
+                font-size: 14px;
+            }
+            
+            .player-score {
+                font-size: 14px;
+                padding: 3px 8px;
+            }
+            
+            /* Game board adjustments */
+            .game-board {
+                gap: 4px;
+                margin-bottom: 10px;
+                max-width: 300px;
+            }
+            
+            .tile {
+                width: 50px;
+                height: 50px;
+                font-size: 24px;
+                border-width: 1px;
+            }
+            
+            .row {
+                gap: 4px;
+            }
+            
+            /* Keyboard adjustments */
+            .keyboard {
+                gap: 4px;
+                padding: 8px 0;
+                margin-bottom: 10px;
+            }
+            
+            .keyboard-row {
+                gap: 3px;
+            }
+            
+            .key {
+                min-width: 30px;
+                height: 45px;
+                font-size: 12px;
+                padding: 0;
+                box-shadow: 0 2px 0 #3a3a3c;
+            }
+            
+            .key.wide {
+                min-width: 48px;
+                font-size: 11px;
+            }
+            
+            /* Message area */
+            #message-area {
+                font-size: 14px;
+                margin: 5px 0;
+            }
+            
+            /* Join screen adjustments */
+            .join-screen {
+                padding: 15px;
+            }
+            
+            .input-group {
+                margin: 15px 0;
+            }
+            
+            .input-group input {
+                padding: 12px;
+                font-size: 15px;
+            }
+            
+            .btn {
+                padding: 12px 20px;
+                font-size: 16px;
+            }
+            
+            #start-game-btn {
+                max-width: 160px;
+                margin: 10px auto;
+                padding: 10px 15px;
+                font-size: 16px;
+            }
+            
+            /* Game over dialog */
+            .game-over {
+                padding: 25px;
+                width: 300px;
+            }
+            
+            .game-over h2 {
+                font-size: 22px;
+            }
+            
+            /* Notification adjustments */
+            .notification-container {
+                bottom: 10px;
+                right: 10px;
+                width: 200px;
+            }
+            
+            .notification {
+                font-size: 12px;
+                padding: 8px 10px;
+            }
+        }
+
+        /* Extra small screens */
+        @media (max-width: 380px) {
+            .tile {
+                width: 45px;
+                height: 45px;
+                font-size: 20px;
+            }
+            
+            .key {
+                min-width: 27px;
+                height: 40px;
+                font-size: 11px;
+            }
+            
+            .key.wide {
+                min-width: 45px;
+                font-size: 10px;
+            }
+            
+            .header h1 {
+                font-size: 18px;
+            }
+            
+            .logo-container img {
+                height: 25px;
             }
         }
     </style>
@@ -587,6 +714,12 @@
             </div>
             
             <div class="game-content">
+                <div class="game-sidebar">
+                    <div class="player-list" id="player-list">
+                        <h3>Players</h3>
+                    </div>
+                </div>
+                
                 <div class="game-main">
                     <div id="game-board" class="game-board"></div>
                     <div id="message-area"></div>
@@ -626,12 +759,6 @@
                             <button class="key" onclick="addLetter('M')">M</button>
                             <button class="key wide" onclick="deleteLetter()">⌫</button>
                         </div>
-                    </div>
-                </div>
-                
-                <div class="game-sidebar">
-                    <div class="player-list" id="player-list">
-                        <h3>Players</h3>
                     </div>
                 </div>
             </div>
