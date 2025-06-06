@@ -351,5 +351,7 @@ def on_next_word(data):
             'message': 'New word ready!'
         }, room=request.sid)
 
+port = int(os.getenv("PORT", 5000))
+
 if __name__ == '__main__':
-    socketio.run(app, host='127.0.0.1', port=3000, debug=True)
+    socketio.run(app, host='0.0.0.0', port=port, debug=True)
